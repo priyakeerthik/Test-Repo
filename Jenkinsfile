@@ -12,7 +12,7 @@ pipeline {
  stages{
     stage('Checkout')
     {
-      agent { label 'demo' }
+      agent { label 'iac' }
       steps {
         git branch: 'newfeature', credentialsId: 'GitlabCred', url: 'https://gitlab.com/wezvaprojects/buildpipeline/backend/springboot.git'
       }
@@ -20,7 +20,7 @@ pipeline {
 
    stage('Build')
     {
-      agent { label 'demo' }
+      agent { label 'iac' }
       steps {
             echo "Building Sprint Boot Jar ..."
             sh "mvn clean package -Dmaven.test.skip=true"
@@ -30,7 +30,7 @@ pipeline {
     
     stage('Code Coverage')
     {
-       agent { label 'demo' }
+       agent { label 'iac' }
        steps {
            echo "Running Code Coverage ..."
            sh "mvn org.jacoco:jacoco-maven-plugin:0.8.2:report"
@@ -39,7 +39,7 @@ pipeline {
 
     stage('SCA')
     {
-      agent { label 'demo' }
+      agent { label 'iac' }
       steps {
            echo "Running Software Composition Analysis using OWASP Dependency-Check ..."
            sh "mvn org.owasp:dependency-check-maven:check"
@@ -48,7 +48,7 @@ pipeline {
 
     stage('SAST')
     {
-      agent { label 'demo' }
+      agent { label 'iac' }
       steps{
         echo "Running Static application security testing using SonarQube Scanner ..."
         withSonarQubeEnv('mysonarqube') {
@@ -59,7 +59,7 @@ pipeline {
 
    stage("Quality Gate")
    {
-      agent { label 'demo' }
+      agent { label 'iac' }
       steps{
         script {
           timeout(time: 1, unit: 'MINUTES') {
@@ -74,7 +74,7 @@ pipeline {
 
     stage('Store Artifacts')
     {
-       agent { label 'demo' }
+       agent { label 'iac' }
        steps {
         script {
        /* Define the Artifactory Server details */
@@ -94,7 +94,7 @@ pipeline {
 
   stage('Build Image')
   {
-    agent { label 'demo' }
+    agent { label 'iac' }
     steps{
       script {
                                   // Prepare the Tag name for the Image
@@ -113,7 +113,7 @@ pipeline {
 
   stage ('Scan Image')
   {
-    agent { label 'demo' }
+    agent { label 'iac' }
 	steps {
             echo "Analyze Dockerfile for best practices ..."
             sh "docker run --rm -i hadolint/hadolint < Dockerfile | tee -a dockerlinter.log"
@@ -131,7 +131,7 @@ pipeline {
 
    stage('Smoke Deploy')
     {
-       agent { label 'kind' }
+       agent { label 'iac' }
        steps {
            git branch: 'newfeature', credentialsId: 'GitlabCred', url: 'https://gitlab.com/wezvaprojects/buildpipeline/backend/springboot.git'
       
@@ -150,7 +150,7 @@ pipeline {
 
     stage('Smoke Test')
     {
-       agent { label 'kind' }
+       agent { label 'iac' }
        steps {
               sh "kubectl wait --for=condition=ready pod/`kubectl get pods -n wezvatech |grep wezva |awk '{print \$1}'| tail -1` -n wezvatech  --timeout=300s"
               sh  "echo Springboot deployed successfully ..."
@@ -161,7 +161,7 @@ pipeline {
      }
 
   stage ('Trigger CD'){
-    agent {label 'demo'}
+    agent {label 'iac'}
      when {  expression { return params.deploybuild } }
     steps {
 	   script {
